@@ -65,7 +65,7 @@ io.on('connection', function (socket) {
     });
     //------------------------Private comunicacion-------------------------------------------
 
-    socket.on('privateUpdate', function (sourceUser, destUser, order) {
+    socket.on('privateUpdate', function (sourceUser, destUser, object) {
         console.log('---privateUpdate---');
         let userInfo = loggedUsers.userInfoByID(destUser.id);
         let socket_id = userInfo !== undefined ? userInfo.socketID : null;
@@ -73,8 +73,17 @@ io.on('connection', function (socket) {
             console.log('   ---privateUpdate_unavailable---');
             socket.emit('privateUpdate_unavailable', destUser);
         } else {
-            console.log('   ---privateUpdate_sent---Order: '+order.id);
-            io.to(socket_id).emit('privateUpdate', sourceUser, order);
+            
+            if(object.state && object.state === "in preparation") {
+                console.log('   ---privateUpdateConfirmed---Object: '+object.id);
+                io.to(socket_id).emit('privateUpdateConfirmed', sourceUser, object);
+            } else if(object.state && object.state === "prepared") {
+                console.log('   ---privateUpdatePrepared---Object: '+object.id);
+                io.to(socket_id).emit('privateUpdatePrepared', sourceUser, object);
+            } else {
+                console.log('   ---privateUpdate---Object: '+object.id);
+                io.to(socket_id).emit('privateUpdate', sourceUser, object);
+            }
             socket.emit('privateUpdate_sent', destUser);
         }
     });
