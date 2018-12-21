@@ -51,6 +51,10 @@ io.on('connection', function (socket) {
         console.log('---kitchen---');
         io.sockets.to('department_cook').emit('update');
     });
+    socket.on('kitchenWichoutMe', function () {
+        console.log('---kitchenWichoutMe---');
+        socket.broadcast.to('department_cook').emit('update');
+    });
     socket.on('cashier', function () {
         console.log('---cashier---');
         io.sockets.to('department_cashier').emit('update');
@@ -61,13 +65,16 @@ io.on('connection', function (socket) {
     });
     //------------------------Private comunicacion-------------------------------------------
 
-    socket.on('privateUpdate', function (sourceUser, destUser) {
+    socket.on('privateUpdate', function (sourceUser, destUser, order) {
+        console.log('---privateUpdate---');
         let userInfo = loggedUsers.userInfoByID(destUser.id);
         let socket_id = userInfo !== undefined ? userInfo.socketID : null;
         if (socket_id === null) {
+            console.log('   ---privateUpdate_unavailable---');
             socket.emit('privateUpdate_unavailable', destUser);
         } else {
-            io.to(socket_id).emit('privateUpdate', sourceUser);
+            console.log('   ---privateUpdate_sent---Order: '+order.id);
+            io.to(socket_id).emit('privateUpdate', sourceUser, order);
             socket.emit('privateUpdate_sent', destUser);
         }
     });
