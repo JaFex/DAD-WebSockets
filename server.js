@@ -27,21 +27,60 @@ var app = require('http').createServer();
 
 var io = require('socket.io')(app);
 
+var LoggedUsers = require('./loggedusers.js');
+
 app.listen(8080, function(){
     console.log('listening on *:8080');
 });
 
 // ------------------------
 // Estrutura dados - server
-// ------------------------
+// ------------------------io.on('connection', function (socket) {
+
+let loggedUsers = new LoggedUsers();
 
 io.on('connection', function (socket) {
     console.log('client has connected (socket ID = '+socket.id+')' );
 
+    //----------------------------Comunicacion between departments------------------------------------------
+    socket.on('waiter', function () {
+        console.log('---waiter---');
+        io.sockets.to('department_waiter').emit('update');
+    });
+    socket.on('kitchen', function () {
+        console.log('---kitchen---');
+        io.sockets.to('department_cook').emit('update');
+    });
+    socket.on('cashier', function () {
+        console.log('---cashier---');
+        io.sockets.to('department_cashier').emit('update');
+    });
+    socket.on('manager', function () {
+        console.log('---manager---');
+        io.sockets.to('department_manager').emit('update');
+    });
+    //------------------------Private comunicacion-------------------------------------------
+
+    socket.on('privateUpdate', function (sourceUser, destUser) {
+        let userInfo = loggedUsers.userInfoByID(destUser.id);
+        let socket_id = userInfo !== undefined ? userInfo.socketID : null;
+        if (socket_id === null) {
+            socket.emit('privateUpdate_unavailable', destUser);
+        } else {
+            io.to(socket_id).emit('privateUpdate', sourceUser);
+            socket.emit('privateUpdate_sent', destUser);
+        }
+    });
+
+    //-----------------------------------------------------------------------------------------
+
+
+    //----------------------------Login and logout------------------------------------------
     //User join to department channel
     socket.on('user_enter', function (user) {
         if (user !== undefined && user !== null) {
             socket.join('department_' + user.type);
+            loggedUsers.addUserInfo(user, socket.id);
             console.log('User: ' + user.username + ' join to ' + user.type);
         }
     });
@@ -50,9 +89,11 @@ io.on('connection', function (socket) {
     socket.on('user_exit', function (user) {
         if (user !== undefined && user !== null) {
             socket.leave('department_' + user.type);
+            loggedUsers.removeUserInfoByID(user.id);
             console.log('User: ' + user.username + ' leave ' + user.type);
         }
     });
+    //-----------------------------------------------------------------------------------------
 
     //Send message to managers
     socket.on('msg_to_managers_from_client', function (msg, user) { 
