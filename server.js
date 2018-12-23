@@ -123,4 +123,19 @@ io.on('connection', function (socket) {
         } 
     });
 
+    //Send reload tables request to all
+    socket.on('msg_update_tables_from_client', function () { 
+        io.sockets.emit('msg_update_tables_from_server');
+    });  
+
+    //Send reload items request to all
+    socket.on('msg_update_items_from_client', function () { 
+        io.sockets.emit('msg_update_items_from_server');
+    });
+
+    //Send reload users request to all
+    socket.on('msg_update_users_from_client', function () { 
+        io.sockets.emit('msg_update_users_from_server');
+    });
+
 });
