@@ -59,6 +59,10 @@ io.on('connection', function (socket) {
         console.log('---cashier---');
         io.sockets.to('department_cashier').emit('update');
     });
+    socket.on('cashierWichoutMe', function () {
+        console.log('---kitchenWichoutMe---');
+        socket.broadcast.to('department_cashier').emit('update');
+    });
     socket.on('manager', function () {
         console.log('---manager---');
         io.sockets.to('department_manager').emit('update');
