@@ -67,6 +67,11 @@ io.on('connection', function (socket) {
         console.log('---manager---');
         io.sockets.to('department_manager').emit('update');
     });
+
+    socket.on('managerMeal', function (object_id, state) {
+        console.log('---managerMeal---');
+        io.sockets.to('department_manager').emit('mealTERMINATEDandPAID', object_id, state);
+    });
     //------------------------Private comunicacion-------------------------------------------
 
     socket.on('privateUpdate', function (sourceUser, destUser, object) {
