@@ -58,6 +58,8 @@ io.on('connection', function (socket) {
     socket.on('cashier', function () {
         console.log('---cashier---');
         io.sockets.to('department_cashier').emit('update');
+        console.log('---ManagerUpdateInvoiceAndMeal---');
+        io.sockets.to('department_manager').emit('updateInvoiceAndMeal');
     });
     socket.on('cashierWichoutMe', function () {
         console.log('---cashierWichoutMe---');
@@ -67,9 +69,22 @@ io.on('connection', function (socket) {
         console.log('---manager---');
         io.sockets.to('department_manager').emit('update');
     });
+    socket.on('managerUpdateMealOrInvoice', function (type) {
+        console.log('---managerUpdateMealOrInvoice---'+type);
+        if(type==='invoice') {
+            io.sockets.to('department_manager').emit('updateInvoice');
+        } else if(type==='meal') {
+            io.sockets.to('department_manager').emit('updateMeal');
+        }
+    });
+    socket.on('managerUpdateOrders', function (order) {
+        console.log('---managerUpdateOrders---meal:'+(order.meal_id)+',state:'+(order.state));
+        io.sockets.to('department_manager').emit('updateOrders', order);
+    });
 
     socket.on('managerMeal', function (object_id, state) {
         console.log('---managerMeal---');
+        io.sockets.to('department_manager').emit('updateInvoiceAndMeal');
         io.sockets.to('department_manager').emit('mealTERMINATEDandPAID', object_id, state);
     });
     //------------------------Private comunicacion-------------------------------------------
